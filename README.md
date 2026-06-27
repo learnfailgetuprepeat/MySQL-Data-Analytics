@@ -4,7 +4,7 @@ Learning MySQL for Data Analytics through Maven Analytics. Documentation of quer
 # MySQL Data Analytics Portfolio: Maven Movies Database Audit
 
 ## 🏢 Business Scenario Overview
-I have assumed day-to-day data operations for **Maven Movies**, a legacy brick-and-mortar DVD rental business. With access to a relational database containing 16 interconnected tables, my objective is to independent analyze operations, investigate customer purchasing habits, manage inventory availability, and audit staff performance to streamline business decision-making.
+I have assumed day-to-day data operations for **Maven Movies**, a legacy brick-and-mortar DVD rental business. With access to a relational database containing 16 interconnected tables, my objective is to independent analyze operations, investigate customer purchasing habits, manage inventory availability and audit staff performance to streamline business decision-making.
 
 ## 📊 Project Roadmap & SQL Application
 The analysis tracks the course framework to solve operational problems using structured MySQL queries:
