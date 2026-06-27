@@ -19,3 +19,10 @@ The analysis tracks the course framework to solve operational problems using str
 ## 🛠️ Database Infrastructure
 * **Engine:** MySQL
 * **Schema Size:** 16 Relational Tables (Tracking Inventory, Rental Transactions, Actor Registries, Customers, and Staff)
+
+## 🎯 Portfolio Scope & Focus
+
+Following industry-standard data analysis expectations, this repository focuses strictly on **Data Exploration, Extraction, and Analytics**. 
+
+* **In-Scope (What I Focus On):** Writing optimized, complex queries to pull business metrics, analyzing database schemas across 16 tables, joining datasets, and translating raw outputs into executive-level insights.
+* **Out-of-Scope (Database Administration):** This project explicitly excludes database infrastructure building, table creation (`CREATE TABLE`), altering schemas, or managing user permissions, keeping the focus entirely on high-impact business analysis.
