@@ -2,7 +2,7 @@
 -- Instructor: Alex the Analyst (MySQL Basics Series, Video 4)
 -- Objective: Aggregating rows into summary categories and sorting output results
 
--- Core Concepts:
+-- Core Concepts: 
 -- 1. GROUP BY collapses multiple rows into summary categories based on matching values.
 -- 2. Aggregate functions (COUNT, AVG, MIN, MAX, SUM) must be used for any columns 
 --    in the SELECT statement that are not explicitly listed in the GROUP BY clause.
