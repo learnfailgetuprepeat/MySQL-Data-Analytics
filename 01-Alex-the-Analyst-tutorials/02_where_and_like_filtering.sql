@@ -15,7 +15,7 @@ USE parks_and_recreation;
 --Drill 1: Filtering numerical data with comparison operators
 SELECT *
 FROM employee_salary
-WHERE salary >= 50000;
+WHERE salary >= 50000; 
 
 --DRILL 2: Chaining logic using AND/OR to isolate demographic groups
 SELECT *
