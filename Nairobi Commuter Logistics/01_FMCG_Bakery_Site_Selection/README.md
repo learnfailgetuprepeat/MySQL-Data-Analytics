@@ -54,3 +54,21 @@ Our current dataset only tracks the early morning schedule initialization (the 6
 
 For a business, this means using a split-shift model: keep staffing light in the morning for prep work and stack maximum staff on the counter from 4:00 PM onwards to handle the massive evening exit rush.
 
+
+## 🗺️ Visualizing the Commuter Foot-Traffic
+<img width="1439" height="813" alt="Screenshot 2026-07-08 at 14 30 16" src="https://github.com/user-attachments/assets/275024b8-9b42-4ff5-8f95-cac93078bfc0" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
