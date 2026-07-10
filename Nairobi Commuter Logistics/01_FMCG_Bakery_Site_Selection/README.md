@@ -87,17 +87,34 @@ GROUP BY s.stop_name, hour_arrived
 ORDER BY s.stop_name ASC, hour_arrived ASC;
 ```
 
-💡 Core Insights & Data Observations
-The 6:00 AM Super Peak: Across all primary target locations (including Agip, Church Army and Kaloleni), commuter volume heavily concentrates within the 6:00 AM hour block. This represents the primary morning initialization phase for public transit routes heading toward commercial zones.
 
-Micro-Location Preservations (Duplicate Rows): You will notice certain locations like City Stadium appear twice in the primary target list. This is a deliberate strategic choice rather than a data error. The underlying transit data tracks separate coordinates for individual physical stages in the same area (e.g., the inbound side heading into the CBD vs. the outbound side heading towards the estates).
+### 💡 Core Insights & Data Observations
 
-By preserving both rows, the business gains the luxury of choosing the exact side of the road with the highest directional foot traffic, ensuring maximum visibility and accessibility for commuters.
+* **The 6:00 AM Super-Peak:** Across all primary target locations (including Agip, Church Army, and Kaloleni), commuter volume heavily concentrates within the 6:00 AM hour block. This represents the primary morning initialization phase for public transit routes heading toward commercial zones.
 
+* **Micro-Location Preservations (Duplicate Rows):** You will notice certain locations like *City Stadium* appear twice in the primary target list. This is a deliberate strategic choice rather than a data error. The underlying transit data tracks separate coordinates for individual physical stages in the same area (e.g., the inbound side heading into the CBD vs. the outbound side heading towards the estates).
 
-
-
+* **Strategic Advantage:** By preserving both rows, the business gains the luxury of choosing the exact side of the road with the highest directional foot traffic, ensuring maximum visibility and accessibility for commuters.
 
 
+### 📊 Chapter 2 Data Output Preview
+
+| stop_name | hour_arrived | total_unique_routes | total_trips |
+| :--- | :---: | :---: | :---: |
+| Agip | 6 | 15 | 15 |
+| Agip | 7 | 5 | 5 |
+| Church Army | 6 | 17 | 32 |
+| City Stadium | 6 | 18 | 32 |
+| City Stadium | 7 | 1 | 1 |
+| Kaloleni | 6 | 15 | 15 |
+| Kaloleni | 7 | 1 | 1 |
+| Koja | 6 | 17 | 28 |
+| Koja | 7 | 3 | 3 |
+| Maziwa | 6 | 18 | 33 |
+| Maziwa | 7 | 1 | 1 |
+| Odeon | 6 | 17 | 34 |
+| OTC | 6 | 18 | 23 |
+| OTC | 7 | 1 | 1 |
+| Shauri Moyo | 6 | 15 | 15 |
 
 
