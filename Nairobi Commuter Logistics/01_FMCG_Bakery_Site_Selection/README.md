@@ -2,7 +2,7 @@
 
 [![Tableau Public](https://img.shields.io/badge/Tableau-Interactive%20Dashboard-blue?logo=tableau)](https://public.tableau.com/shared/QFX4SGSXT?:display_count=n&:origin=viz_share_link)
 
-## 1. Problem Statement & Business Context
+## 1. Problem Statement & Business Context 
 
 For a Fast Moving Consumer Goods (FMCG) startup, such as a fresh bakery chain, opening a retail location based on intuition or cheap rent carries significant financial risk. Commercial success in high-density urban environments relies on **predictable, high-volume pedestrian foot traffic paired with high buying intent**.
 
