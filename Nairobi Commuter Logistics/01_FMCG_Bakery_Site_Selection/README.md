@@ -1,120 +1,139 @@
-# 🍞 Module 1: Where Should You Open a Bakery in Nairobi? (Fast Moving Consumer Goods (FMGC) Retail Strategy)
+# Nairobi Commuter Logistics: GTFS-Driven Site Selection for Fast Moving Consumer Goods (FMCG) Expansion
 
-## 📌 What Am I Trying to Solve?
-If you want to open a business in Nairobi, guessing where to put your shop based on "good vibes" is an easy way to lose money. For an FMCG business like a bakery, you need eyes on your product. You want to be exactly where commuters are stuck waiting for a matatu or where they are pouring off matatus hungry.
+[![Tableau Public](https://img.shields.io/badge/Tableau-Interactive%20Dashboard-blue?logo=tableau)](https://public.tableau.com/shared/QFX4SGSXT?:display_count=n&:origin=viz_share_link)
 
-Instead of guessing, I used public transit data from Nairobi's transit network to figure out a data-driven retail strategy. By querying the database, I wanted to answer three simple questions for a new bakery startup:
-1. **Where** are the absolute biggest commuter hotspots?
-2. **What** time does the peak rush happen so we know when to staff up?
-3. **Which** directions are people actually traveling (towards CBD or away from CBD) so we can tailor the menu (e.g., selling quick breakfast snacks vs. family bread to take home)?
+## 1. Problem Statement & Business Context
+
+For a Fast Moving Consumer Goods (FMCG) startup, such as a fresh bakery chain, opening a retail location based on intuition or cheap rent carries significant financial risk. Commercial success in high-density urban environments relies on **predictable, high-volume pedestrian foot traffic paired with high buying intent**.
+
+In Nairobi, commuter movement is anchored by the matatus (public service vehicles) network:
+
+* **The Morning Peak (6:00 AM – 8:00 AM):** Commuters assemble at stages within residential areas to wait for matatus heading to CBD. Passenger idle time is high at this time, creating a captive audience with peak buying intent for quick, grab-and-go breakfast items (coffee, mandazis, cakes etc).
+* **The Evening Peak:** Passengers alight from vehicles returning to residential areas. Ths creates higher demand for family sized packaged goods such as bread.
+
+### Core Objectives
+
+This project analyzes Nairobi’s General Transit Feed Specification (GTFS) data to answer three critical questions for retail site selection:
+
+1. **Where are the hotspots with the highest number of morning commuters?**
+2. **Which exact physical side of the tarmac (with matatus heading towards or away from CBD) holds the highest waiting passenger volume?**
+3. **What time windows experience the heaviest traffic surges to optimize shift staffing and prep schedules?**
 
 ---
 
-## 🛠️ How the Tables Connect
-To find these answers, I had to link four different parts of the transit network together in MySQL:
-* `stage_stops`: Gives us the actual names and the exact GPS coordinates of the bus stages.
-* `stage_stop_times`: Tracks when matatus are actually hitting those stages.
-* `trips`: The critical piece that contains the `direction_id` flag (telling us if a bus is going towards the CBD (inbound) or coming out(outbound)).
-* `routes`: Connects everything to the broader transit corridors.
+## 2. Tech Stack & Data Architecture
+
+* **Database Engine:** MySQL Server
+* **Database Client:** DBeaver Community Edition
+* **Visualization:** Tableau Public
+* **Data Standard:** GTFS Relational Schema
+* **Key Schema Relational Joins:**
+  * `stops`: Contains platform stage names and geographic coordinates (`stop_lat`, `stop_lon`).
+  * `stop_times`: Tracks scheduled vehicle arrival times (`arrival_time`).
+  * `trips`: Connects routes to specific trips and holds the directional flag (`direction_id`).
+  * `routes`: Links trip schedules to commercial transit corridors.
 
 ---
 
-## 💻 The Analytical Query
-To split the commuter traffic by direction without double counting rows, I used conditional aggregation (`COUNT(CASE WHEN...)`). This let me break down exactly how many trips were heading into town versus heading out at each stage.
+## 3. Analytical SQL Workflow & Iterations
+
+### Step 1: Directional Query
+Before running macro aggregations, I verified that `direction_id = '0'` accurately maps to matatus heading toward the Central Business District (CBD) by checking route headsigns across estate transit corridors.
+
+```sql
+SELECT DISTINCT 
+    r.route_short_name,
+    t.direction_id,
+    t.trip_headsign
+FROM trips t
+JOIN routes r ON t.route_id = r.route_id
+WHERE t.trip_headsign LIKE '%CBD%' 
+   OR t.trip_headsign LIKE '%Odeon%' 
+   OR t.trip_headsign LIKE '%Kencom%'
+LIMIT 10;
+```
+
+---
+
+### Step 2: Core Inbound Morning Density Aggregation
+With directional logic confirmed, I queried the GTFS feed to count distinct vehicle arrivals per stage platform during the morning rush hour window (6:00 AM – 8:00 AM) for inbound routes.
 
 ```sql
 SELECT 
     s.stop_name,
-    COUNT(CASE WHEN direction_id = '1' THEN 1 END) AS to_cbd,
-    COUNT(CASE WHEN direction_id = '0' THEN 1 END) AS from_cbd,
-    COUNT(DISTINCT t.route_id) AS total_unique_routes,
-    stop_lat, 
-    stop_lon
-FROM stage_stops s
-JOIN stage_stop_times st ON s.stop_id = st.stop_id
+    COUNT(DISTINCT t.trip_id) AS peak_matatu_arrivals,
+    t.direction_id,
+    s.stop_lat,
+    s.stop_lon
+FROM stops s
+JOIN stop_times st ON s.stop_id = st.stop_id
 JOIN trips t ON st.trip_id = t.trip_id
-JOIN routes r ON r.route_id = t.route_id
-GROUP BY s.stop_name, stop_lat, stop_lon
-ORDER BY total_unique_routes DESC;
+WHERE HOUR(st.arrival_time) IN (6, 7)
+  AND t.direction_id = '0'
+GROUP BY s.stop_name, t.direction_id, s.stop_lat, s.stop_lon
+ORDER BY peak_matatu_arrivals DESC;
 ```
 
 ---
 
-📊 Core Insights & Business Strategy
-
-Example: Agip (The Evening Exit Throat)
-
-The Data: to_cbd: 136 | from_cbd: 2,584 | Total Unique Routes: 20
-
-The Strategy: There is a massive imbalance. Only 136 trips heading to the CBD, but over 2,500 heading out. Opening a morning breakfast shop here would be a total waste of money. Agip is structurally an evening bottleneck where people line up to leave the city.
-
-The Menu: The kiosk here should focus entirely on take-home goods. Commuters waiting in lines here are looking for evening snacks for the road or whole family loaves of bread to take home for dinner and the next morning's breakfast.
-
-A Note on the Time Limitation:
-
-Our current dataset only tracks the early morning schedule initialization (the 6:00 AM and 7:00 AM peaks). While we don't have the explicit evening timestamps in the database yet, analysis of the routing directions proves how the city moves. Knowing that Agip is a outbound hub located away from CBD means its real, massive foot-traffic wave happens between 4:30 PM and 7:30 PM.
-
-For a business, this means using a split-shift model: keep staffing light in the morning for prep work and stack maximum staff on the counter from 4:00 PM onwards to handle the massive evening exit rush.
-
-
-## 🗺️ Visualizing the Commuter Foot-Traffic
-<img width="1439" height="813" alt="Screenshot 2026-07-08 at 14 30 16" src="https://github.com/user-attachments/assets/275024b8-9b42-4ff5-8f95-cac93078bfc0" />
-
-
-
-## ⏰ Chapter 2: The Peak Hour Engine (Temporal Analysis)
-
-### 1. Business Objective
-To optimize labor efficiency, minimize food waste and ensure maximum product freshness, I analyzed the exact hourly distribution of commuter traffic across our target locations. This data dictates the baking schedules and active staffing windows.
-
-### 2. The Time-Bucketing Query
-Because raw transit timestamps are highly granular (e.g., `06:14:22`), I used `SUBSTRING_INDEX` to isolate the hour block. I then filtered the entire transit network down exclusively to our high-priority retail hotspots.
+### Step 3: Platform Boundary & Geographic Integrity Check
+To prevent data distortion from invalid GPS coordinates or missing listings, I did a quick validation check on the aggregated dataset before exporting to Tableau.
 
 ```sql
-SELECT
-    s.stop_name,
-    SUBSTRING_INDEX(st.arrival_time, ':', 1) AS hour_arrived,
-    COUNT(DISTINCT r.route_id) AS total_unique_routes,
-    COUNT(DISTINCT st.trip_id) AS total_trips
-FROM stage_stop_times st
-JOIN stage_stops s ON st.stop_id = s.stop_id
-JOIN trips t ON st.trip_id = t.trip_id
-JOIN routes r ON t.route_id = r.route_id
-WHERE s.stop_name IN (
-    'Agip','Kaloleni','Maziwa','City Stadium','Shauri Moyo','Church Army','City Stadium','Odeon','OTC','Koja','Church Army'
-)
-GROUP BY s.stop_name, hour_arrived
-ORDER BY s.stop_name ASC, hour_arrived ASC;
+SELECT 
+    stop_name, 
+    COUNT(*) AS row_count
+FROM stops
+WHERE stop_lat IS NOT NULL AND stop_lon IS NOT NULL
+GROUP BY stop_name
+HAVING row_count > 1;
 ```
 
+---
 
-### 💡 Core Insights & Data Observations
+### Analytical Insights & Engineering Pivots
 
-* **The 6:00 AM Super-Peak:** Across all primary target locations (including Agip, Church Army, and Kaloleni), commuter volume heavily concentrates within the 6:00 AM hour block. This represents the primary morning initialization phase for public transit routes heading toward commercial zones.
+#### Pivot A: Isolating Physical Platform Coordinates
 
-* **Micro-Location Preservations (Duplicate Rows):** You will notice certain locations like *City Stadium* appear twice in the primary target list. This is a deliberate strategic choice rather than a data error. The underlying transit data tracks separate coordinates for individual physical stages in the same area (e.g., the inbound side heading into the CBD vs. the outbound side heading towards the estates).
+* **The Finding:** Grouping strictly by `stop_name` merged opposing sides of the road into a single metric.
+* **The Refinement:** Adding `s.stop_lat` and `s.stop_lon` to the `SELECT` and `GROUP BY` clauses separated opposing platforms across the street. This isolated the precise stage where commuters queue, ensuring a kiosk isn't accidentally placed on the exit/drop-off side of the road.
 
-* **Strategic Advantage:** By preserving both rows, the business gains the luxury of choosing the exact side of the road with the highest directional foot traffic, ensuring maximum visibility and accessibility for commuters.
+#### Pivot B: Directional Logic Verification
 
+* **The Diagnostic:** Cross-referencing trip destinations (`trip_headsign`) for routes originating in residential estates confirmed that `direction_id = 0` represents inbound routes with trips ending at the CBD (*Odeon, Kencom, Koja*), validating `0` as the target filter for morning foot traffic.
 
-### 📊 Chapter 2 Data Output Preview
+---
 
-| stop_name | hour_arrived | total_unique_routes | total_trips |
-| :--- | :---: | :---: | :---: |
-| Agip | 6 | 15 | 15 |
-| Agip | 7 | 5 | 5 |
-| Church Army | 6 | 17 | 32 |
-| City Stadium | 6 | 18 | 32 |
-| City Stadium | 7 | 1 | 1 |
-| Kaloleni | 6 | 15 | 15 |
-| Kaloleni | 7 | 1 | 1 |
-| Koja | 6 | 17 | 28 |
-| Koja | 7 | 3 | 3 |
-| Maziwa | 6 | 18 | 33 |
-| Maziwa | 7 | 1 | 1 |
-| Odeon | 6 | 17 | 34 |
-| OTC | 6 | 18 | 23 |
-| OTC | 7 | 1 | 1 |
-| Shauri Moyo | 6 | 15 | 15 |
+## 🗺️ 4. Geospatial Visualization (Tableau)
 
+To communicate my findings to business stakeholders, I mapped the aggregated SQL output using **Tableau Public**.
 
+* **Interactive Map:** [View Live Tableau Dashboard](https://public.tableau.com/shared/QFX4SGSXT?:display_count=n&:origin=viz_share_link)
+
+* **Key Visual Elements:**
+  * **Proportional Mark Scaling:** Circle size scales dynamically with `peak_matatu_arrivals`, highlighting high density areas along **Jogoo Road** and **Outering Road feeders**.
+  * **Density Filtering:** Low-volume stops (< 3 matatu arrivals) were filtered out to eliminate background noise and isolate primary commercial hubs.
+
+---
+
+## 📊 5. Findings & Strategic Recommendations
+
+### Recommended Launch Locations (6:00 AM – 8:00 AM Peak)
+
+| Rank | Stage Name | Morning Arrival Volume | Direction | Operational & Retail Alignment |
+| :---: | :--- | :---: | :---: | :--- |
+| **1** | **Church Army** | **13** | Inbound (`0`) | **Tier 1 Launch:** Heavy residential convergence; high passenger volume create ideal conditions for morning grab-and-go sales. |
+| **2** | **Donholm Roundabout / Stage** | **12** | Inbound (`0`) | **Tier 1 Launch:** High volume feeder stage serving multiple estate feeder routes. |
+| **3** | **Makadara / DC** | **12** | Inbound (`0`) | **Tier 1 Launch:** Key bottleneck along the eastern transit corridor. |
+| **4** | **Total Jogoo Road** | **12** | Inbound (`0`) | **Tier 1 Launch:** High visual visibility along major pedestrian walkways. |
+| **5** | **Hamza / Posta** | **11** | Inbound (`0`) | **Tier 1 Launch:** Sustained high pedestrian density throughout the 6:00 AM – 7:30 AM window. |
+
+---
+
+### ⏱️ Operational Staffing & Labor Strategy
+
+Matching labor allocation to transit arrival curves minimizes operational costs while preventing queue drop-offs:
+
+* **5:00 AM – 6:00 AM (Prep & Inventory Shift):** *2 Staff Members (Kitchen Prep / Stocking).* Focus on baking, packaging and kiosk setup prior to the transit surge.
+* **6:00 AM – 8:30 AM (Peak Rush Shift):** *3–4 Staff Members (2 Cashiers, 1 Restocker).* Maximize transaction speed during the 6–7 AM arrival peak to capture commuter volume before boarding.
+* **8:30 AM Onward (Off-Peak Transition):** *1 Staff Member (Maintenance & Low-Volume Service).* Scale down shift labor as inbound transit volume drops off post-8:30 AM.
